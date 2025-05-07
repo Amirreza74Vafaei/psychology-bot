@@ -2,7 +2,7 @@ import telebot
 import pandas as pd
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
-TOKEN = "token"  # ← اینجا توکن خودت رو بذار
+TOKEN = "7946365837:AAGxQxkglL6awKfznD0K9OG6To163jWBm4M"  # ← اینجا توکن خودت رو بذار
 bot = telebot.TeleBot(TOKEN)
 
 user_data = {}
