@@ -3,5 +3,5 @@ git init
 git add .
 git commit -m "initial commit"
 git branch -M main
-git remote add origin https://github.com/USERNAME/psychology-bot.git
+git remote add origin https://github.com/Amirreza74vafaei/psychology-bot.git
 git push -u origin main
