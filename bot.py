@@ -4,7 +4,7 @@ import telebot
 
 # 📌 دریافت توکن و URL از محیط (یا مقدار پیش‌فرض)
 TOKEN = os.getenv("TOKEN", "7946365837:AAGxQxkglL6awKfznD0K9OG6To163jWBm4M")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://psychology-bot-production.up.railway.app")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://github.com/Amirreza74Vafaei/psychology-bot")
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
