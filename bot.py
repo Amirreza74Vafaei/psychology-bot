@@ -31,8 +31,15 @@ scores = {"هیچ‌وقت": 0, "گاهی": 1, "اغلب": 2, "تقریباً ه
 # 🎯 شروع تست
 @bot.message_handler(commands=["start"])
 def start(message):
+    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("شروع تست روانشناسی")
+    bot.send_message(message.chat.id, "سلام! به ربات تست روانشناسی خوش آمدید. لطفاً گزینه زیر را برای شروع تست انتخاب کنید:", reply_markup=markup)
+
+# 🎯 گزینه شروع تست
+@bot.message_handler(func=lambda message: message.text == "شروع تست روانشناسی")
+def start_test(message):
     user_data[message.chat.id] = {"responses": [], "index": 0}
-    bot.send_message(message.chat.id, "سلام! تست روانشناسی شروع شد. لطفاً به هر سوال پاسخ دهید.")
+    bot.send_message(message.chat.id, "تست روانشناسی شروع شد. لطفاً به هر سوال پاسخ دهید.")
     ask_question(message.chat.id)
 
 # ❓ ارسال سوال
