@@ -1,18 +1,17 @@
 import os
-import telebot
 from flask import Flask, request
+import telebot
 
-# مقدار مستقیم برای اجرا در لوکال
-TOKEN = os.getenv("7946365837:AAGxQxkglL6awKfznD0K9OG6To163jWBm4M", "توکن_ربات_خود")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://your-app-name.up.railway.app")
+# 📌 دریافت توکن و URL از محیط (یا مقدار پیش‌فرض)
+TOKEN = os.getenv("TOKEN", "7946365837:AAGxQxkglL6awKfznD0K9OG6To163jWBm4M")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://psychology-bot-production.up.railway.app")
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-# ذخیره‌سازی موقت کاربران
 user_data = {}
 
-# سوالات تست روانشناسی کلی
+# ✅ سوالات تست روانشناسی
 questions = [
     "در دو هفته گذشته، چقدر احساس بی‌قراری یا اضطراب داشته‌اید؟",
     "چقدر از فعالیت‌های روزمره لذت می‌برید؟",
@@ -26,36 +25,37 @@ questions = [
     "احساس می‌کنید توانایی کنترل شرایط زندگی را دارید؟"
 ]
 
-# گزینه‌ها و امتیاز هر گزینه
 options = ["هیچ‌وقت", "گاهی", "اغلب", "تقریباً همیشه"]
 scores = {"هیچ‌وقت": 0, "گاهی": 1, "اغلب": 2, "تقریباً همیشه": 3}
 
-# شروع تست
+# 🎯 شروع تست
 @bot.message_handler(commands=["start"])
 def start(message):
     user_data[message.chat.id] = {"responses": [], "index": 0}
-    bot.send_message(message.chat.id, "سلام! تست روانشناسی کلی شروع شد. لطفاً به هر سوال با دقت پاسخ دهید.")
+    bot.send_message(message.chat.id, "سلام! تست روانشناسی شروع شد. لطفاً به هر سوال پاسخ دهید.")
     ask_question(message.chat.id)
 
-# پرسیدن سوال
+# ❓ ارسال سوال
 def ask_question(chat_id):
     index = user_data[chat_id]["index"]
     if index < len(questions):
         markup = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         for opt in options:
-            markup.add(telebot.types.KeyboardButton(opt))
+            markup.add(opt)
         msg = bot.send_message(chat_id, questions[index], reply_markup=markup)
-        bot.register_next_step_handler(msg, lambda m: save_answer(m))
+        bot.register_next_step_handler(msg, save_answer)
     else:
         analyze(chat_id)
 
-# ذخیره پاسخ‌ها
+# 📝 ذخیره پاسخ‌ها
 def save_answer(message):
-    user_data[message.chat.id]["responses"].append(message.text)
-    user_data[message.chat.id]["index"] += 1
-    ask_question(message.chat.id)
+    chat_id = message.chat.id
+    answer = message.text
+    user_data[chat_id]["responses"].append(answer)
+    user_data[chat_id]["index"] += 1
+    ask_question(chat_id)
 
-# تحلیل نهایی
+# 📊 تحلیل تست
 def analyze(chat_id):
     responses = user_data[chat_id]["responses"]
     total_score = sum(scores.get(ans, 1) for ans in responses)
@@ -73,26 +73,20 @@ def analyze(chat_id):
 
     bot.send_message(chat_id, f"📊 تحلیل تست:\n{result}")
 
-# Webhook endpoint
+# 📬 وبهوک اصلی
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
-    json_string = request.get_data().decode("utf-8")
-    update = telebot.types.Update.de_json(json_string)
+    update = telebot.types.Update.de_json(request.data.decode("utf-8"))
     bot.process_new_updates([update])
-    return "!", 200
+    return "OK", 200
 
-# ثبت webhook
-@app.before_first_request
-def setup_webhook():
+# 🔧 ست کردن وبهوک
+@app.route("/set_webhook", methods=["GET"])
+def set_webhook():
     bot.remove_webhook()
     bot.set_webhook(url=f"{WEBHOOK_URL}/{TOKEN}")
+    return "Webhook set!", 200
 
-# اجرای سرور Flask
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-    bot.set_webhook(url=f"{WEBHOOK_URL}/{TOKEN}")
-
-# اجرای Flask
+# ⚙️ اجرای فقط در محیط توسعه
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
